@@ -19,120 +19,92 @@
     	</ul>
     </div>
 	<div class="wrap-header">
-	<h1>
-    <a href="/" id="title"></a>
-	</h1>
+			<h1>
+            <a href="/" id="title"></a>
+			</h1>
 	</div>
 <div id="md" style="display: none;">
 <!-- markdown -->
-原文出自http://allluckly.cn/%E4%B8%8A%E6%9E%B6/iOS%E8%A2%AB%E6%8B%92%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/，谢谢作者的无私分享 ！
+今天学习了如何使用cocospods来替代使用第三方时拖拽核心文件的做法，把步骤写出来： 1.移除现存Ruby默认源
 
-2.2 - Apps that exhibit bugs will be rejected
-end ngRepeat: rejectionReason in message.qcRejectionReasons
+$gem sources --remove https://rubygems.org/
 
-解决方案：修复bug即可。
+2.使用新的源
 
-2.16 - Multitasking Apps may only use background services for their intended purposes: VoIP, audio playback, location, task completion, local notifications, etc.
+$gem sources -a https://ruby.taobao.org/
 
-解决方案：取消打钩 targets 中的 capbilities 选项中的background modes中voice over ip
+3.验证新源是否替换成功
 
-10.6 - Apple and our customers place a high value on simple, refined, creative, well thought through interfaces. They take more work but are worth it. Apple sets a high bar. If your user interface is complex or less than very good, it may be rejected
+$gem sources -l
 
-解决方案： 把第三方登录没有安装的APP 隐藏
+4.安装CocoaPods
 
-17.2 - Apps that require users to share personal information, such as email address and date of birth, in order to function will be rejected
-end ngRepeat: rejectionReason in message.qcRejectionReasons
-Information Needed
-end ngRepeat: rejectionReason in message.qcRejectionReasons
+(1) sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudo gem install -n /usr/local/bin cocoapods，这一点我没有用到，是看网上大神的（出自http://www.cnblogs.com/zxs-19920314/p/4985476.html?utmsource=tuicool&utmmedium=referral），暂且补充上吧，以供参考
 
-解决方案：icons 以及截图符合所有年龄组，不要出现暴力，手枪，带色情的内容。
+(2) $pod setup
 
-11.2 - Apps utilizing a system other than the In-App Purchase API (IAP) to purchase content, functionality, or services in an App will be rejected
-解决方案：虚拟物品购买，需要内购。
+5.更新gem
 
-14.3 - Apps that display user generated content must include a method for filtering objectionable material, a mechanism for users to flag offensive content, and the ability to block abusive users from the service
-解决方案：增加举报功能。
+$sudo gem update --system
 
-由 壹贰叁 提供
+新建工程，并在终端用cd指令到文件夹内
+$pod search 第三方
 
-8.6 - Apps that include the ability to download music or video content from third party sources (e.g. YouTube, SoundCloud, Vimeo, etc) without explicit authorization from those sources will be rejected
+7.新建文件 vim “Podfile”，（此处容易写错成Profile，导致反复出错而不知）
 
-Details
-We found that your app allows users to download music or video content without authorization from the relevant third-party sources.
+$vim Podfile
 
-解决方案：目前是暂时去掉了下载功能，并且提供了部分音频，视频片源的版权文件（打包成pdf 以附件的形式上传）
+写入以下内容并保存 做法：（终端vim文件 按 i 可编辑 ，esc 退出编辑，：wq 可保存退出）
 
-10.6 - Apple and our customers place a high value on simple, refined, creative, well thought through interfaces. They take more work but are worth it. Apple sets a high bar. If your user interface is complex or less than very good, it may be rejected
+platform:ios, '6.0'
 
-Details
-We were required to install the WeChat app before we can log-in via WeChat. The user should be able to log-in and access their account, without requiring additional applications to be installed.
+pod 'AFNetworking', '~> 2.3.1' <-------第三方
 
-解决方案：隐藏掉未安装的第三方应用的图标。应用中存在，微博、微信、qq等第三方登陆时，如果微信、qq、微博 未安装时 且 第三方无法通过网页进行认证时，隐藏掉未安装的第三方应用的图标。
+8.导入第三方库
 
-11.12 - Apps offering subscriptions must do so using IAP, Apple will share the same 70/30 revenue split with developers for these purchases, as set forth in the Program License Agreement
-
-Details
-We noticed that your app offers a subscription with a mechanism other than the In-App Purchase API.
-
-解决方案： 集成苹果iAP内购功能。如果购买的商品是虚拟的需要在程序内部消耗，如电影，音乐、游戏道具等需要走苹果的内购。
-京东、天猫等购买商品是实体商品，可以使用第三方支付，不需走内购。
-
-
+$pod install
 <!-- markdown end -->
 </div>
 <div class="entry" id="main">
 <!-- content -->
-<p>原文出自http://allluckly.cn/%E4%B8%8A%E6%9E%B6/iOS%E8%A2%AB%E6%8B%92%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0/，谢谢作者的无私分享 ！</p>
+<p>今天学习了如何使用cocospods来替代使用第三方时拖拽核心文件的做法，把步骤写出来： 1.移除现存Ruby默认源</p>
 
-<p>2.2 - Apps that exhibit bugs will be rejected
-end ngRepeat: rejectionReason in message.qcRejectionReasons</p>
+<p>$gem sources --remove https://rubygems.org/</p>
 
-<p>解决方案：修复bug即可。</p>
+<p>2.使用新的源</p>
 
-<p>2.16 - Multitasking Apps may only use background services for their intended purposes: VoIP, audio playback, location, task completion, local notifications, etc.</p>
+<p>$gem sources -a https://ruby.taobao.org/</p>
 
-<p>解决方案：取消打钩 targets 中的 capbilities 选项中的background modes中voice over ip</p>
+<p>3.验证新源是否替换成功</p>
 
-<p>10.6 - Apple and our customers place a high value on simple, refined, creative, well thought through interfaces. They take more work but are worth it. Apple sets a high bar. If your user interface is complex or less than very good, it may be rejected</p>
+<p>$gem sources -l</p>
 
-<p>解决方案： 把第三方登录没有安装的APP 隐藏</p>
+<p>4.安装CocoaPods</p>
 
-<p>17.2 - Apps that require users to share personal information, such as email address and date of birth, in order to function will be rejected
-end ngRepeat: rejectionReason in message.qcRejectionReasons
-Information Needed
-end ngRepeat: rejectionReason in message.qcRejectionReasons</p>
+<p>(1) sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudogeminstallcocoapodsps：升级OSXELCapitan后改为sudo gem install -n /usr/local/bin cocoapods，这一点我没有用到，是看网上大神的（出自http://www.cnblogs.com/zxs-19920314/p/4985476.html?utmsource=tuicool&amp;utmmedium=referral），暂且补充上吧，以供参考</p>
 
-<p>解决方案：icons 以及截图符合所有年龄组，不要出现暴力，手枪，带色情的内容。</p>
+<p>(2) $pod setup</p>
 
-<p>11.2 - Apps utilizing a system other than the In-App Purchase API (IAP) to purchase content, functionality, or services in an App will be rejected
-解决方案：虚拟物品购买，需要内购。</p>
+<p>5.更新gem</p>
 
-<p>14.3 - Apps that display user generated content must include a method for filtering objectionable material, a mechanism for users to flag offensive content, and the ability to block abusive users from the service
-解决方案：增加举报功能。</p>
+<p>$sudo gem update --system</p>
 
-<p>由 壹贰叁 提供</p>
+<p>新建工程，并在终端用cd指令到文件夹内
+$pod search 第三方</p>
 
-<p>8.6 - Apps that include the ability to download music or video content from third party sources (e.g. YouTube, SoundCloud, Vimeo, etc) without explicit authorization from those sources will be rejected</p>
+<p>7.新建文件 vim “Podfile”，（此处容易写错成Profile，导致反复出错而不知）</p>
 
-<p>Details
-We found that your app allows users to download music or video content without authorization from the relevant third-party sources.</p>
+<p>$vim Podfile</p>
 
-<p>解决方案：目前是暂时去掉了下载功能，并且提供了部分音频，视频片源的版权文件（打包成pdf 以附件的形式上传）</p>
+<p>写入以下内容并保存 做法：（终端vim文件 按 i 可编辑 ，esc 退出编辑，：wq 可保存退出）</p>
 
-<p>10.6 - Apple and our customers place a high value on simple, refined, creative, well thought through interfaces. They take more work but are worth it. Apple sets a high bar. If your user interface is complex or less than very good, it may be rejected</p>
+<p>platform:ios, '6.0'</p>
 
-<p>Details
-We were required to install the WeChat app before we can log-in via WeChat. The user should be able to log-in and access their account, without requiring additional applications to be installed.</p>
+<p>pod 'AFNetworking', '~&gt; 2.3.1' &lt;-------第三方</p>
 
-<p>解决方案：隐藏掉未安装的第三方应用的图标。应用中存在，微博、微信、qq等第三方登陆时，如果微信、qq、微博 未安装时 且 第三方无法通过网页进行认证时，隐藏掉未安装的第三方应用的图标。</p>
+<p>8.导入第三方库</p>
 
-<p>11.12 - Apps offering subscriptions must do so using IAP, Apple will share the same 70/30 revenue split with developers for these purchases, as set forth in the Program License Agreement</p>
-
-<p>Details
-We noticed that your app offers a subscription with a mechanism other than the In-App Purchase API.</p>
-
-<p>解决方案： 集成苹果iAP内购功能。如果购买的商品是虚拟的需要在程序内部消耗，如电影，音乐、游戏道具等需要走苹果的内购。
-京东、天猫等购买商品是实体商品，可以使用第三方支付，不需走内购。</p>
+<p>$pod install</p>
 <!-- content end -->
 </div>
 <br>
@@ -167,17 +139,23 @@ $(document).ready(function() {
         dataType: "json",
         success: function(data) {
             $("#title").html(data.name);
-            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
-            var pagesHtml = pagesTemplate.render({"pages": data.pages});
-            $("#pages").append(pagesHtml);
+            var pages = [];
             //path
             var path = "0105.html";
             //path end
             var now = 0;
-            for (var i = 0; i < data.posts.length; ++i)
-                if (path == data.posts[i].path)
+            for (var i = 0; i < data.pages.length; ++i)
+                if (path == data.pages[i].path) {
                     now = i;
-            var post = data.posts[now];
+                    pages.push({"select": true, "path": data.pages[i].path, "title": data.pages[i].title});
+                }
+                else {
+                    pages.push({"select": false, "path": data.pages[i].path, "title": data.pages[i].title});
+                }
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": pages});
+            $("#pages").append(pagesHtml);
+            var post = data.pages[now];
             var tmp = post.tags.split(" ");
             var tags = [];
             for (var i = 0; i < tmp.length; ++i)
