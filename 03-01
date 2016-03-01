@@ -1,0 +1,978 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+原文出自http://allluckly.cn/ios%E6%94%AF%E4%BB%98/iOS%E5%BC%80%E5%8F%912015%E5%B9%B4%E6%9C%80%E6%96%B0%E5%86%85%E8%B4%AD%E6%95%99%E7%A8%8B，感谢作者的无私分享，学习大神技术，谢谢！
+
+==========第一部分协议=======
+
+分10步，图形化操作
+
+CNAPS CODE 查询地址 https://e.czbank.com/CORPORBANK/query_unionBank_index.jsp
+
+分9步，图形化操作
+
+=============第二部分创建内购项目============
+
+分7步，图形化操作
+===========第三部分贴加内购项目测试账号==========
+
+分3步，图形化操作
+
+=============第四部分主要实现代码==========
+
+首先导入StoreKit.framework库
+
+.h文件
+
+#define kSandboxVerifyURL @"https://sandbox.itunes.apple.com/verifyReceipt" //开发阶段沙盒验证URL
+#define kAppStoreVerifyURL @"https://buy.itunes.apple.com/verifyReceipt" //实际购买验证URL
+#import <StoreKit/StoreKit.h>
+
+
+
+
+enum{
+IAP0p20=20,
+IAP1p100,
+IAP4p600,
+IAP9p1000,
+IAP24p6000,
+}buyCoinsTag;
+
+
+
+
+
+//代理
+@interface RechargeVC : UIViewController <SKPaymentTransactionObserver,SKProductsRequestDelegate >
+
+
+
+{
+int buyType;
+}
+
+
+
+- (void) requestProUpgradeProductData;
+
+
+-(void)RequestProductData;
+
+
+-(void)buy:(int)type;
+
+
+- (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions;
+
+
+-(void) PurchasedTransaction: (SKPaymentTransaction *)transaction;
+
+
+- (void) completeTransaction: (SKPaymentTransaction *)transaction;
+
+
+- (void) failedTransaction: (SKPaymentTransaction *)transaction;
+
+
+-(void) paymentQueueRestoreCompletedTransactionsFinished: (SKPaymentTransaction *)transaction;
+
+
+-(void) paymentQueue:(SKPaymentQueue *) paymentQueue restoreCompletedTransactionsFailedWithError:(NSError *)error;
+
+
+
+- (void) restoreTransaction: (SKPaymentTransaction *)transaction;
+
+
+-(void)provideContent:(NSString *)product;
+
+
+-(void)recordTransaction:(NSString *)product;
+
+
+
+@end
+.m文件
+
+#import "RechargeVC.h"
+
+
+//在内购项目中创的商品单号
+#define ProductID_IAP0p20 @"Nada.JPYF01"//20
+#define ProductID_IAP1p100 @"Nada.JPYF02" //100
+#define ProductID_IAP4p600 @"Nada.JPYF03" //600
+#define ProductID_IAP9p1000 @"Nada.JPYF04" //1000
+#define ProductID_IAP24p6000 @"Nada.JPYF05" //6000
+
+
+
+@interface RechargeVC ()
+
+@end
+
+
+@implementation RechargeVC
+
+
+- (void)viewDidLoad {
+
+    [super viewDidLoad];
+
+    [[SKPaymentQueue defaultQueue] addTransactionObserver:self];
+    [self buy:IAP0p20];
+
+}
+
+
+-(void)buy:(int)type
+{
+    buyType = type;
+    if ([SKPaymentQueue canMakePayments]) {
+    [self RequestProductData];
+    NSLog(@"允许程序内付费购买");
+}
+else
+{
+    NSLog(@"不允许程序内付费购买");
+    UIAlertView *alerView =  [[UIAlertView alloc] initWithTitle:@"提示"
+    message:@"您的手机没有打开程序内付费购买"
+    delegate:nil cancelButtonTitle:NSLocalizedString(@"关闭",nil) otherButtonTitles:nil];
+
+    [alerView show];
+
+
+    }
+}
+
+-(void)RequestProductData
+{
+    NSLog(@"---------请求对应的产品信息------------");
+    NSArray *product = nil;
+    switch (buyType) {
+        case IAP0p20:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP0p20,nil];
+        break;
+        case IAP1p100:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP1p100,nil];
+        break;
+        case IAP4p600:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP4p600,nil];
+        break;
+        case IAP9p1000:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP9p1000,nil];
+        break;
+        case IAP24p6000:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP24p6000,nil];
+        break;
+
+        default:
+        break;
+}
+    NSSet *nsset = [NSSet setWithArray:product];
+    SKProductsRequest *request=[[SKProductsRequest alloc] initWithProductIdentifiers: nsset];
+    request.delegate=self;
+    [request start];
+
+}
+
+//<SKProductsRequestDelegate> 请求协议
+//收到的产品信息
+- (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response{
+
+    NSLog(@"-----------收到产品反馈信息--------------");
+    NSArray *myProduct = response.products;
+    NSLog(@"产品Product ID:%@",response.invalidProductIdentifiers);
+    NSLog(@"产品付费数量: %d", (int)[myProduct count]);
+    // populate UI
+    for(SKProduct *product in myProduct){
+    NSLog(@"product info");
+    NSLog(@"SKProduct 描述信息%@", [product description]);
+    NSLog(@"产品标题 %@" , product.localizedTitle);
+    NSLog(@"产品描述信息: %@" , product.localizedDescription);
+    NSLog(@"价格: %@" , product.price);
+    NSLog(@"Product id: %@" , product.productIdentifier);
+}
+    SKPayment *payment = nil;
+    switch (buyType) {
+        case IAP0p20:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP0p20];    //支付25
+        break;
+        case IAP1p100:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP1p100];    //支付108
+        break;
+        case IAP4p600:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP4p600];    //支付618
+        break;
+        case IAP9p1000:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP9p1000];    //支付1048
+        break;
+        case IAP24p6000:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP24p6000];    //支付5898
+        break;
+        default:
+        break;
+}
+    NSLog(@"---------发送购买请求------------");
+    [[SKPaymentQueue defaultQueue] addPayment:payment];
+
+}
+- (void)requestProUpgradeProductData
+{
+    NSLog(@"------请求升级数据---------");
+    NSSet *productIdentifiers = [NSSet setWithObject:@"com.productid"];
+    SKProductsRequest* productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
+    productsRequest.delegate = self;
+    [productsRequest start];
+
+}
+//弹出错误信息
+- (void)request:(SKRequest *)request didFailWithError:(NSError *)error{
+    NSLog(@"-------弹出错误信息----------");
+    UIAlertView *alerView =  [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Alert",NULL) message:[error localizedDescription]
+    delegate:nil cancelButtonTitle:NSLocalizedString(@"Close",nil) otherButtonTitles:nil];
+    [alerView show];
+
+}
+
+-(void) requestDidFinish:(SKRequest *)request
+{
+    NSLog(@"----------反馈信息结束--------------");
+
+}
+
+-(void) PurchasedTransaction: (SKPaymentTransaction *)transaction{
+    NSLog(@"-----PurchasedTransaction----");
+    NSArray *transactions =[[NSArray alloc] initWithObjects:transaction, nil];
+    [self paymentQueue:[SKPaymentQueue defaultQueue] updatedTransactions:transactions];
+}
+
+//<SKPaymentTransactionObserver> 千万不要忘记绑定，代码如下：
+//----监听购买结果
+//[[SKPaymentQueue defaultQueue] addTransactionObserver:self];
+
+- (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions//交易结果
+{
+    NSLog(@"-----paymentQueue--------");
+    for (SKPaymentTransaction *transaction in transactions)
+    {
+        switch (transaction.transactionState)
+        {
+            case SKPaymentTransactionStatePurchased:{//交易完成
+            [self completeTransaction:transaction];
+            NSLog(@"-----交易完成 --------");
+            //购买成功后进行验证
+            [self verifyPurchaseWithPaymentTransaction];
+
+        } break;
+        case SKPaymentTransactionStateFailed://交易失败
+            { [self failedTransaction:transaction];
+            NSLog(@"-----交易失败 --------");
+            UIAlertView *alerView2 =  [[UIAlertView alloc] initWithTitle:@"提示"
+            message:@"购买失败，请重新尝试购买"
+            delegate:nil cancelButtonTitle:NSLocalizedString(@"关闭",nil) otherButtonTitles:nil];
+
+            [alerView2 show];
+
+        }break;
+        case SKPaymentTransactionStateRestored://已经购买过该商品
+            [self restoreTransaction:transaction];
+            NSLog(@"-----已经购买过该商品 --------");
+            case SKPaymentTransactionStatePurchasing:      //商品添加进列表
+            NSLog(@"-----商品添加进列表 --------");
+            break;
+            default:
+            break;
+        }
+    }
+}
+
+/**
+*  验证购买，避免越狱软件模拟苹果请求达到非法购买问题
+*
+*/
+-(void)verifyPurchaseWithPaymentTransaction{
+    //从沙盒中获取交易凭证并且拼接成请求体数据
+    NSURL *receiptUrl=[[NSBundle mainBundle] appStoreReceiptURL];
+    NSData *receiptData=[NSData dataWithContentsOfURL:receiptUrl];
+
+    NSString *receiptString=[receiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];//转化为base64字符串
+
+    NSString *bodyString = [NSString stringWithFormat:@"{\"receipt-data\" : \"%@\"}", receiptString];//拼接请求数据
+    NSData *bodyData = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
+
+    //创建请求到苹果官方进行购买验证
+    NSURL *url=[NSURL URLWithString:kSandboxVerifyURL];
+    NSMutableURLRequest *requestM=[NSMutableURLRequest requestWithURL:url];
+    requestM.HTTPBody=bodyData;
+    requestM.HTTPMethod=@"POST";
+    //创建连接并发送同步请求
+    NSError *error=nil;
+    NSData *responseData=[NSURLConnection sendSynchronousRequest:requestM returningResponse:nil error:&error];
+    if (error) {
+        NSLog(@"验证购买过程中发生错误，错误信息：%@",error.localizedDescription);
+        return;
+    }
+    NSDictionary *dic=[NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingAllowFragments error:nil];
+    NSLog(@"%@",dic);
+    if([dic[@"status"] intValue]==0){
+        NSLog(@"购买成功！");
+        NSDictionary *dicReceipt= dic[@"receipt"];
+        NSDictionary *dicInApp=[dicReceipt[@"in_app"] firstObject];
+        NSString *productIdentifier= dicInApp[@"product_id"];//读取产品标识
+        //如果是消耗品则记录购买数量，非消耗品则记录是否购买过
+        NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+        if ([productIdentifier isEqualToString:kProductID3]) {
+            int purchasedCount=[defaults integerForKey:productIdentifier];//已购买数量
+            [[NSUserDefaults standardUserDefaults] setInteger:(purchasedCount+1) forKey:productIdentifier];
+        }else{
+            [defaults setBool:YES forKey:productIdentifier];
+        }
+        [self.tableView reloadData];
+        //在此处对购买记录进行存储，可以存储到开发商的服务器端
+    }else{
+        NSLog(@"购买失败，未通过验证！");
+    }
+}
+
+- (void) completeTransaction: (SKPaymentTransaction *)transaction
+
+{
+    NSLog(@"-----completeTransaction--------");
+    // Your application should implement these two methods.
+    NSString *product = transaction.payment.productIdentifier;
+    if ([product length] > 0) {
+
+    NSArray *tt = [product componentsSeparatedByString:@"."];
+    NSString *bookid = [tt lastObject];
+    if ([bookid length] > 0) {
+    [self recordTransaction:bookid];
+    [self provideContent:bookid];
+}
+}
+
+    // Remove the transaction from the payment queue.
+
+    [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
+}
+
+//记录交易
+-(void)recordTransaction:(NSString *)product{
+    NSLog(@"-----记录交易--------");
+}
+
+//处理下载内容
+-(void)provideContent:(NSString *)product{
+    NSLog(@"-----下载--------");
+}
+
+- (void) failedTransaction: (SKPaymentTransaction *)transaction{
+    NSLog(@"失败");
+    if (transaction.error.code != SKErrorPaymentCancelled)
+    {
+
+    }
+    [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
+}
+-(void) paymentQueueRestoreCompletedTransactionsFinished: (SKPaymentTransaction *)transaction{
+
+}
+
+- (void) restoreTransaction: (SKPaymentTransaction *)transaction
+{
+    NSLog(@" 交易恢复处理");
+
+}
+
+-(void) paymentQueue:(SKPaymentQueue *) paymentQueue restoreCompletedTransactionsFailedWithError:(NSError *)error{
+    NSLog(@"-------paymentQueue----");
+}
+
+#pragma mark connection delegate
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    NSLog(@"%@",  [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+}
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection{
+
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
+    switch([(NSHTTPURLResponse *)response statusCode]) {
+        case 200:
+        case 206:
+        break;
+        case 304:
+        break;
+        case 400:
+        break;
+        case 404:
+        break;
+        case 416:
+        break;
+        case 403:
+        break;
+        case 401:
+        case 500:
+        break;
+        default:
+        break;
+    }
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+    NSLog(@"test");
+}
+
+-(void)dealloc
+{
+    [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];//解除监听
+
+}
+
+@end
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>原文出自http://allluckly.cn/ios%E6%94%AF%E4%BB%98/iOS%E5%BC%80%E5%8F%912015%E5%B9%B4%E6%9C%80%E6%96%B0%E5%86%85%E8%B4%AD%E6%95%99%E7%A8%8B，感谢作者的无私分享，学习大神技术，谢谢！</p>
+
+<p>==========第一部分协议=======</p>
+
+<p>分10步，图形化操作</p>
+
+<p>CNAPS CODE 查询地址 https://e.czbank.com/CORPORBANK/query<em>unionBank</em>index.jsp</p>
+
+<p>分9步，图形化操作</p>
+
+<p>=============第二部分创建内购项目============</p>
+
+<p>分7步，图形化操作
+===========第三部分贴加内购项目测试账号==========</p>
+
+<p>分3步，图形化操作</p>
+
+<p>=============第四部分主要实现代码==========</p>
+
+<p>首先导入StoreKit.framework库</p>
+
+<p>.h文件</p>
+
+<h1 id="defineksandboxverifyurlhttpssandboxitunesapplecomverifyreceipturl">define kSandboxVerifyURL @"https://sandbox.itunes.apple.com/verifyReceipt" //开发阶段沙盒验证URL</h1>
+
+<h1 id="definekappstoreverifyurlhttpsbuyitunesapplecomverifyreceipturl">define kAppStoreVerifyURL @"https://buy.itunes.apple.com/verifyReceipt" //实际购买验证URL</h1>
+
+<h1 id="importstorekitstorekith">import <storekit storekit.h=""></storekit></h1>
+
+<p>enum{
+IAP0p20=20,
+IAP1p100,
+IAP4p600,
+IAP9p1000,
+IAP24p6000,
+}buyCoinsTag;</p>
+
+<p>//代理
+@interface RechargeVC : UIViewController <skpaymenttransactionobserver,skproductsrequestdelegate></skpaymenttransactionobserver,skproductsrequestdelegate></p>
+
+<p>{
+int buyType;
+}</p>
+
+<ul>
+<li>(void) requestProUpgradeProductData;</li>
+</ul>
+
+<p>-(void)RequestProductData;</p>
+
+<p>-(void)buy:(int)type;</p>
+
+<ul>
+<li>(void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions;</li>
+</ul>
+
+<p>-(void) PurchasedTransaction: (SKPaymentTransaction *)transaction;</p>
+
+<ul>
+<li><p>(void) completeTransaction: (SKPaymentTransaction *)transaction;</p></li>
+<li><p>(void) failedTransaction: (SKPaymentTransaction *)transaction;</p></li>
+</ul>
+
+<p>-(void) paymentQueueRestoreCompletedTransactionsFinished: (SKPaymentTransaction *)transaction;</p>
+
+<p>-(void) paymentQueue:(SKPaymentQueue *) paymentQueue restoreCompletedTransactionsFailedWithError:(NSError *)error;</p>
+
+<ul>
+<li>(void) restoreTransaction: (SKPaymentTransaction *)transaction;</li>
+</ul>
+
+<p>-(void)provideContent:(NSString *)product;</p>
+
+<p>-(void)recordTransaction:(NSString *)product;</p>
+
+<p>@end
+.m文件</p>
+
+<h1 id="importrechargevch">import "RechargeVC.h"</h1>
+
+<p>//在内购项目中创的商品单号</p>
+
+<h1 id="defineproductid_iap0p20nadajpyf0120">define ProductID_IAP0p20 @"Nada.JPYF01"//20</h1>
+
+<h1 id="defineproductid_iap1p100nadajpyf02100">define ProductID_IAP1p100 @"Nada.JPYF02" //100</h1>
+
+<h1 id="defineproductid_iap4p600nadajpyf03600">define ProductID_IAP4p600 @"Nada.JPYF03" //600</h1>
+
+<h1 id="defineproductid_iap9p1000nadajpyf041000">define ProductID_IAP9p1000 @"Nada.JPYF04" //1000</h1>
+
+<h1 id="defineproductid_iap24p6000nadajpyf056000">define ProductID_IAP24p6000 @"Nada.JPYF05" //6000</h1>
+
+<p>@interface RechargeVC ()</p>
+
+<p>@end</p>
+
+<p>@implementation RechargeVC</p>
+
+<ul>
+<li><p>(void)viewDidLoad {</p>
+
+<p>[super viewDidLoad];</p>
+
+<p>[[SKPaymentQueue defaultQueue] addTransactionObserver:self];
+[self buy:IAP0p20];</p></li>
+</ul>
+
+<p>}</p>
+
+<p>-(void)buy:(int)type
+{
+    buyType = type;
+    if ([SKPaymentQueue canMakePayments]) {
+    [self RequestProductData];
+    NSLog(@"允许程序内付费购买");
+}
+else
+{
+    NSLog(@"不允许程序内付费购买");
+    UIAlertView *alerView =  [[UIAlertView alloc] initWithTitle:@"提示"
+    message:@"您的手机没有打开程序内付费购买"
+    delegate:nil cancelButtonTitle:NSLocalizedString(@"关闭",nil) otherButtonTitles:nil];</p>
+
+<pre><code>[alerView show];
+
+
+}
+</code></pre>
+
+<p>}</p>
+
+<p>-(void)RequestProductData
+{
+    NSLog(@"---------请求对应的产品信息------------");
+    NSArray *product = nil;
+    switch (buyType) {
+        case IAP0p20:
+        product=[[NSArray alloc] initWithObjects:ProductID<em>IAP0p20,nil];
+        break;
+        case IAP1p100:
+        product=[[NSArray alloc] initWithObjects:ProductID</em>IAP1p100,nil];
+        break;
+        case IAP4p600:
+        product=[[NSArray alloc] initWithObjects:ProductID<em>IAP4p600,nil];
+        break;
+        case IAP9p1000:
+        product=[[NSArray alloc] initWithObjects:ProductID</em>IAP9p1000,nil];
+        break;
+        case IAP24p6000:
+        product=[[NSArray alloc] initWithObjects:ProductID_IAP24p6000,nil];
+        break;</p>
+
+<pre><code>    default:
+    break;
+</code></pre>
+
+<p>}
+    NSSet *nsset = [NSSet setWithArray:product];
+    SKProductsRequest *request=[[SKProductsRequest alloc] initWithProductIdentifiers: nsset];
+    request.delegate=self;
+    [request start];</p>
+
+<p>}</p>
+
+<p>//<skproductsrequestdelegate> 请求协议
+//收到的产品信息
+- (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response{</skproductsrequestdelegate></p>
+
+<pre><code>NSLog(@"-----------收到产品反馈信息--------------");
+NSArray *myProduct = response.products;
+NSLog(@"产品Product ID:%@",response.invalidProductIdentifiers);
+NSLog(@"产品付费数量: %d", (int)[myProduct count]);
+// populate UI
+for(SKProduct *product in myProduct){
+NSLog(@"product info");
+NSLog(@"SKProduct 描述信息%@", [product description]);
+NSLog(@"产品标题 %@" , product.localizedTitle);
+NSLog(@"产品描述信息: %@" , product.localizedDescription);
+NSLog(@"价格: %@" , product.price);
+NSLog(@"Product id: %@" , product.productIdentifier);
+</code></pre>
+
+<p>}
+    SKPayment *payment = nil;
+    switch (buyType) {
+        case IAP0p20:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID<em>IAP0p20];    //支付25
+        break;
+        case IAP1p100:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID</em>IAP1p100];    //支付108
+        break;
+        case IAP4p600:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID<em>IAP4p600];    //支付618
+        break;
+        case IAP9p1000:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID</em>IAP9p1000];    //支付1048
+        break;
+        case IAP24p6000:
+        payment  = [SKPayment paymentWithProductIdentifier:ProductID_IAP24p6000];    //支付5898
+        break;
+        default:
+        break;
+}
+    NSLog(@"---------发送购买请求------------");
+    [[SKPaymentQueue defaultQueue] addPayment:payment];</p>
+
+<p>}
+- (void)requestProUpgradeProductData
+{
+    NSLog(@"------请求升级数据---------");
+    NSSet <em>productIdentifiers = [NSSet setWithObject:@"com.productid"];
+    SKProductsRequest</em> productsRequest = [[SKProductsRequest alloc] initWithProductIdentifiers:productIdentifiers];
+    productsRequest.delegate = self;
+    [productsRequest start];</p>
+
+<p>}
+//弹出错误信息
+- (void)request:(SKRequest *)request didFailWithError:(NSError *)error{
+    NSLog(@"-------弹出错误信息----------");
+    UIAlertView *alerView =  [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Alert",NULL) message:[error localizedDescription]
+    delegate:nil cancelButtonTitle:NSLocalizedString(@"Close",nil) otherButtonTitles:nil];
+    [alerView show];</p>
+
+<p>}</p>
+
+<p>-(void) requestDidFinish:(SKRequest *)request
+{
+    NSLog(@"----------反馈信息结束--------------");</p>
+
+<p>}</p>
+
+<p>-(void) PurchasedTransaction: (SKPaymentTransaction *)transaction{
+    NSLog(@"-----PurchasedTransaction----");
+    NSArray *transactions =[[NSArray alloc] initWithObjects:transaction, nil];
+    [self paymentQueue:[SKPaymentQueue defaultQueue] updatedTransactions:transactions];
+}</p>
+
+<p>//<skpaymenttransactionobserver> 千万不要忘记绑定，代码如下：
+//----监听购买结果
+//[[SKPaymentQueue defaultQueue] addTransactionObserver:self];</skpaymenttransactionobserver></p>
+
+<ul>
+<li><p>(void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions//交易结果
+{
+NSLog(@"-----paymentQueue--------");
+for (SKPaymentTransaction *transaction in transactions)
+{
+    switch (transaction.transactionState)
+    {
+        case SKPaymentTransactionStatePurchased:{//交易完成
+        [self completeTransaction:transaction];
+        NSLog(@"-----交易完成 --------");
+        //购买成功后进行验证
+        [self verifyPurchaseWithPaymentTransaction];</p>
+
+<pre><code>} break;
+case SKPaymentTransactionStateFailed://交易失败
+    { [self failedTransaction:transaction];
+    NSLog(@"-----交易失败 --------");
+    UIAlertView *alerView2 =  [[UIAlertView alloc] initWithTitle:@"提示"
+    message:@"购买失败，请重新尝试购买"
+    delegate:nil cancelButtonTitle:NSLocalizedString(@"关闭",nil) otherButtonTitles:nil];
+
+
+<pre><code>[alerView2 show];
+</code></pre>
+
+}break;
+case SKPaymentTransactionStateRestored://已经购买过该商品
+    [self restoreTransaction:transaction];
+    NSLog(@"-----已经购买过该商品 --------");
+    case SKPaymentTransactionStatePurchasing:      //商品添加进列表
+    NSLog(@"-----商品添加进列表 --------");
+    break;
+    default:
+    break;
+}
+</code></pre>
+
+<p>}
+}</p></li>
+</ul>
+
+<p>/**
+*  验证购买，避免越狱软件模拟苹果请求达到非法购买问题
+*
+*/
+-(void)verifyPurchaseWithPaymentTransaction{
+    //从沙盒中获取交易凭证并且拼接成请求体数据
+    NSURL *receiptUrl=[[NSBundle mainBundle] appStoreReceiptURL];
+    NSData *receiptData=[NSData dataWithContentsOfURL:receiptUrl];</p>
+
+<pre><code>NSString *receiptString=[receiptData base64EncodedStringWithOptions:NSDataBase64EncodingEndLineWithLineFeed];//转化为base64字符串
+
+NSString *bodyString = [NSString stringWithFormat:@"{\"receipt-data\" : \"%@\"}", receiptString];//拼接请求数据
+NSData *bodyData = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
+
+//创建请求到苹果官方进行购买验证
+NSURL *url=[NSURL URLWithString:kSandboxVerifyURL];
+NSMutableURLRequest *requestM=[NSMutableURLRequest requestWithURL:url];
+requestM.HTTPBody=bodyData;
+requestM.HTTPMethod=@"POST";
+//创建连接并发送同步请求
+NSError *error=nil;
+NSData *responseData=[NSURLConnection sendSynchronousRequest:requestM returningResponse:nil error:&amp;error];
+if (error) {
+    NSLog(@"验证购买过程中发生错误，错误信息：%@",error.localizedDescription);
+    return;
+}
+NSDictionary *dic=[NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingAllowFragments error:nil];
+NSLog(@"%@",dic);
+if([dic[@"status"] intValue]==0){
+    NSLog(@"购买成功！");
+    NSDictionary *dicReceipt= dic[@"receipt"];
+    NSDictionary *dicInApp=[dicReceipt[@"in_app"] firstObject];
+    NSString *productIdentifier= dicInApp[@"product_id"];//读取产品标识
+    //如果是消耗品则记录购买数量，非消耗品则记录是否购买过
+    NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+    if ([productIdentifier isEqualToString:kProductID3]) {
+        int purchasedCount=[defaults integerForKey:productIdentifier];//已购买数量
+        [[NSUserDefaults standardUserDefaults] setInteger:(purchasedCount+1) forKey:productIdentifier];
+    }else{
+        [defaults setBool:YES forKey:productIdentifier];
+    }
+    [self.tableView reloadData];
+    //在此处对购买记录进行存储，可以存储到开发商的服务器端
+}else{
+    NSLog(@"购买失败，未通过验证！");
+}
+</code></pre>
+
+<p>}</p>
+
+<ul>
+<li>(void) completeTransaction: (SKPaymentTransaction *)transaction</li>
+</ul>
+
+<p>{
+    NSLog(@"-----completeTransaction--------");
+    // Your application should implement these two methods.
+    NSString *product = transaction.payment.productIdentifier;
+    if ([product length] &gt; 0) {</p>
+
+<pre><code>NSArray *tt = [product componentsSeparatedByString:@"."];
+NSString *bookid = [tt lastObject];
+if ([bookid length] &gt; 0) {
+[self recordTransaction:bookid];
+[self provideContent:bookid];
+</code></pre>
+
+<p>}
+}</p>
+
+<pre><code>// Remove the transaction from the payment queue.
+
+[[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+</code></pre>
+
+<p>}</p>
+
+<p>//记录交易
+-(void)recordTransaction:(NSString *)product{
+    NSLog(@"-----记录交易--------");
+}</p>
+
+<p>//处理下载内容
+-(void)provideContent:(NSString *)product{
+    NSLog(@"-----下载--------");
+}</p>
+
+<ul>
+<li><p>(void) failedTransaction: (SKPaymentTransaction *)transaction{
+NSLog(@"失败");
+if (transaction.error.code != SKErrorPaymentCancelled)
+{</p>
+
+<p>}
+[[SKPaymentQueue defaultQueue] finishTransaction: transaction];</p></li>
+</ul>
+
+<p>}
+-(void) paymentQueueRestoreCompletedTransactionsFinished: (SKPaymentTransaction *)transaction{</p>
+
+<p>}</p>
+
+<ul>
+<li>(void) restoreTransaction: (SKPaymentTransaction *)transaction
+{
+NSLog(@" 交易恢复处理");</li>
+</ul>
+
+<p>}</p>
+
+<p>-(void) paymentQueue:(SKPaymentQueue *) paymentQueue restoreCompletedTransactionsFailedWithError:(NSError *)error{
+    NSLog(@"-------paymentQueue----");
+}</p>
+
+<h1 id="pragmamarkconnectiondelegate">pragma mark connection delegate</h1>
+
+<ul>
+<li>(void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+NSLog(@"%@",  [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+}</li>
+<li>(void)connectionDidFinishLoading:(NSURLConnection *)connection{</li>
+</ul>
+
+<p>}</p>
+
+<ul>
+<li><p>(void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
+switch([(NSHTTPURLResponse *)response statusCode]) {
+    case 200:
+    case 206:
+    break;
+    case 304:
+    break;
+    case 400:
+    break;
+    case 404:
+    break;
+    case 416:
+    break;
+    case 403:
+    break;
+    case 401:
+    case 500:
+    break;
+    default:
+    break;
+}
+}</p></li>
+<li><p>(void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
+NSLog(@"test");
+}</p></li>
+</ul>
+
+<p>-(void)dealloc
+{
+    [[SKPaymentQueue defaultQueue] removeTransactionObserver:self];//解除监听</p>
+
+<p>}</p>
+
+<p>@end</p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "03-01";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>
