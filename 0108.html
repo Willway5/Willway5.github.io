@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="Keywords" content="blog"/>
+    <meta name="Description" content="blog"/>
+    <title>Simple</title>
+    <link rel="shortcut icon" href="/static/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+<div class="main">
+    <div class="header">
+    	<ul id="pages">
+            <li><a href="/">home</a></li>
+            <li><a href="/#/tags">tags</a></li>
+            <li><a href="/#/archive">archive</a></li>
+    	</ul>
+    </div>
+	<div class="wrap-header">
+	<h1>
+    <a href="/" id="title"></a>
+	</h1>
+	</div>
+<div id="md" style="display: none;">
+<!-- markdown -->
+文／SuperDanny（简书作者）
+原文链接：http://www.jianshu.com/p/b71776aabc0d
+著作权归作者所有，转载请联系作者获得授权，并标注“简书作者”。
+
+问题
+
+今天发现使用企业级证书打包下载安装的APP都不能使用，弹窗提示未受信任的企业级开发者
+
+按照以往的情况是弹窗提示信息并且有信任按钮提供选择，现在没有，只有一个取消按钮。
+
+解决
+
+难道iOS9之后就不能使用企业级证书进行使用吗？答案当然是NO。
+
+到底授权信任到哪里去了？其实授权在设置里面。
+
+打开设置-通用-描述文件
+
+在里面选择对应的描述文件，如下图
+
+
+图一
+进入里面对描述文件进行授权信任就可以了，步骤如下图
+
+
+图二
+
+图三
+
+图四
+噩耗
+
+对于那些通过企业证书做分布的人员来说这是一个噩耗，比如一些手机助手软件。因为普通用户根本不知道如何操作。
+
+临时方案
+
+目前我想到的方式
+
+在下载页面事先提示用户如何操作
+仿照手机助手应用事先让用户安装描述文件
+<!-- markdown end -->
+</div>
+<div class="entry" id="main">
+<!-- content -->
+<p>文／SuperDanny（简书作者）
+原文链接：http://www.jianshu.com/p/b71776aabc0d
+著作权归作者所有，转载请联系作者获得授权，并标注“简书作者”。</p>
+
+<p>问题</p>
+
+<p>今天发现使用企业级证书打包下载安装的APP都不能使用，弹窗提示未受信任的企业级开发者</p>
+
+<p>按照以往的情况是弹窗提示信息并且有信任按钮提供选择，现在没有，只有一个取消按钮。</p>
+
+<p>解决</p>
+
+<p>难道iOS9之后就不能使用企业级证书进行使用吗？答案当然是NO。</p>
+
+<p>到底授权信任到哪里去了？其实授权在设置里面。</p>
+
+<p>打开设置-通用-描述文件</p>
+
+<p>在里面选择对应的描述文件，如下图</p>
+
+<p>图一
+进入里面对描述文件进行授权信任就可以了，步骤如下图</p>
+
+<p>图二</p>
+
+<p>图三</p>
+
+<p>图四
+噩耗</p>
+
+<p>对于那些通过企业证书做分布的人员来说这是一个噩耗，比如一些手机助手软件。因为普通用户根本不知道如何操作。</p>
+
+<p>临时方案</p>
+
+<p>目前我想到的方式</p>
+
+<p>在下载页面事先提示用户如何操作
+仿照手机助手应用事先让用户安装描述文件</p>
+<!-- content end -->
+</div>
+<br>
+<br>
+    <div id="disqus_thread"></div>
+	<div class="footer">
+		<p>© Copyright 2014 by isnowfy, Designed by isnowfy</p>
+	</div>
+</div>
+<script src="main.js"></script>
+<script id="content" type="text/mustache">
+    <h1>{{title}}</h1>
+    <div class="tag">
+    {{date}}
+    {{#tags}}
+    <a href="/#/tag/{{name}}">#{{name}}</a>
+    {{/tags}}
+    </div>
+</script>
+<script id="pagesTemplate" type="text/mustache">
+    {{#pages}}
+    <li>
+        <a href="{{path}}">{{title}}</a>
+    </li>
+    {{/pages}}
+</script>
+<script>
+$(document).ready(function() {
+    $.ajax({
+        url: "main.json",
+        type: "GET",
+        dataType: "json",
+        success: function(data) {
+            $("#title").html(data.name);
+            var pagesTemplate = Hogan.compile($("#pagesTemplate").html());
+            var pagesHtml = pagesTemplate.render({"pages": data.pages});
+            $("#pages").append(pagesHtml);
+            //path
+            var path = "0108.html";
+            //path end
+            var now = 0;
+            for (var i = 0; i < data.posts.length; ++i)
+                if (path == data.posts[i].path)
+                    now = i;
+            var post = data.posts[now];
+            var tmp = post.tags.split(" ");
+            var tags = [];
+            for (var i = 0; i < tmp.length; ++i)
+                if (tmp[i].length > 0)
+                    tags.push({"name": tmp[i]});
+            var contentTemplate = Hogan.compile($("#content").html());
+            var contentHtml = contentTemplate.render({"title": post.title, "tags": tags, "date": post.date});
+            $("#main").prepend(contentHtml);
+            if (data.disqus_shortname.length > 0) {
+                var disqus_shortname = data.disqus_shortname;
+                (function() {
+                    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            }
+        }
+    });
+});
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ["\\(", "\\)"]], processEscapes: true}});
+</script>
+</body>
+</html>
